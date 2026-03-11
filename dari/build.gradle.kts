@@ -3,6 +3,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.vanniktech.maven.publish)
 }
 
@@ -47,8 +48,16 @@ dependencies {
     // Serialization (JSON parsing)
     implementation(libs.kotlinx.serialization.json)
 
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     // Test
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }
 
 mavenPublishing {

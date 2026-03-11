@@ -7,6 +7,7 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.easyhooon.dari.data.MessageRepository
+import com.easyhooon.dari.data.local.DariDatabase
 import com.easyhooon.dari.interceptor.DariInterceptor
 import com.easyhooon.dari.interceptor.DefaultDariInterceptor
 import com.easyhooon.dari.notification.DariNotification
@@ -25,7 +26,10 @@ object Dari {
     internal var config = DariConfig()
         private set
 
-    internal val repository = MessageRepository()
+    private var database: DariDatabase? = null
+
+    internal lateinit var repository: MessageRepository
+        private set
 
     private var notification: DariNotification? = null
 
@@ -36,6 +40,11 @@ object Dari {
     fun init(context: Context, config: DariConfig = DariConfig()) {
         this.context = context.applicationContext
         this.config = config
+
+        if (database == null) {
+            database = DariDatabase.create(this.context)
+        }
+        repository = MessageRepository(database!!, config.maxEntries)
 
         if (config.showNotification) {
             notification = DariNotification(this.context)
