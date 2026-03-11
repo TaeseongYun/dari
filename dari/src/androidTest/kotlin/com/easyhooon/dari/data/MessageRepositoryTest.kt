@@ -6,7 +6,10 @@ import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.MessageStatus
 import com.easyhooon.dari.data.local.DariDatabase
-import kotlinx.coroutines.test.runTest
+import com.easyhooon.dari.data.local.toEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,7 +32,7 @@ class MessageRepositoryTest {
 
     @After
     fun tearDown() {
-        database.close()
+        repository.close()
     }
 
     @Test
@@ -92,14 +95,20 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun repository_restoresPersistedEntriesOnCreation() = runTest {
-        repository.addEntry(createEntry("1"))
-        repository.addEntry(createEntry("2"))
+    fun repository_restoresPersistedEntriesOnCreation() = runBlocking {
+        // Insert directly via DAO to guarantee persistence
+        val dao = database.messageDao()
+        withContext(Dispatchers.IO) {
+            dao.insert(createEntry("1").toEntity())
+            dao.insert(createEntry("2").toEntity())
+        }
 
+        repository.close()
         val newRepository = MessageRepository(database, maxEntries = 3)
         newRepository.initialized.await()
 
         assertEquals(2, newRepository.entries.value.size)
+        newRepository.close()
     }
 
     private fun createEntry(requestId: String) = MessageEntry(

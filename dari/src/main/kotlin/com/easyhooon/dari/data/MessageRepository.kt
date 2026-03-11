@@ -4,10 +4,12 @@ import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.data.local.DariDatabase
 import com.easyhooon.dari.data.local.toEntity
 import com.easyhooon.dari.data.local.toMessageEntry
+import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -83,5 +85,10 @@ class MessageRepository internal constructor(
         _entries.value = emptyList()
         _messageCount.value = 0
         scope.launch { dao.clear() }
+    }
+
+    @VisibleForTesting
+    internal fun close() {
+        scope.cancel()
     }
 }

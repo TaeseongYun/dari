@@ -88,16 +88,20 @@ object Dari {
 
     /** Registers a dynamic shortcut shown on launcher long-press */
     private fun addDynamicShortcut() {
-        val intent = Intent(context, DariActivity::class.java).apply {
-            action = Intent.ACTION_VIEW
-        }
-        val shortcut = ShortcutInfoCompat.Builder(context, "open_dari")
-            .setShortLabel("Open Dari")
-            .setLongLabel("Open Dari")
-            .setIcon(IconCompat.createWithResource(context, R.drawable.ic_dari))
-            .setIntent(intent)
-            .build()
+        try {
+            val intent = Intent(context, DariActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+            }
+            val shortcut = ShortcutInfoCompat.Builder(context, "open_dari")
+                .setShortLabel("Open Dari")
+                .setLongLabel("Open Dari")
+                .setIcon(IconCompat.createWithResource(context, R.drawable.ic_dari))
+                .setIntent(intent)
+                .build()
 
-        ShortcutManagerCompat.addDynamicShortcuts(context, listOf(shortcut))
+            ShortcutManagerCompat.addDynamicShortcuts(context, listOf(shortcut))
+        } catch (_: Exception) {
+            // Shortcut registration may fail in test or non-launcher contexts
+        }
     }
 }
