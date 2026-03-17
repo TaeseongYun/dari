@@ -92,6 +92,16 @@
         <span>Trigger native permission dialog</span>
     </button>
 
+    <div class="section">Fire-and-Forget (No Response)</div>
+    <button class="btn btn-purple" onclick="logEvent()">
+        Log Event
+        <span>Analytics event without response (requestId = null)</span>
+    </button>
+    <button class="btn btn-teal" onclick="trackScreenView()">
+        Track Screen View
+        <span>Screen tracking without response (requestId = null)</span>
+    </button>
+
     <div id="log"></div>
 
     <script>
@@ -156,6 +166,18 @@
             var data = JSON.stringify({ permission: "camera" });
             log('→ requestCameraPermission', 'req');
             Android.onBridgeRequest('requestCameraPermission', id, data);
+        }
+
+        function logEvent() {
+            var data = JSON.stringify({ event: "button_click", screen: "sample" });
+            log('→ logEvent (fire-and-forget)', 'req');
+            Android.onBridgeRequestFireAndForget('logEvent', data);
+        }
+
+        function trackScreenView() {
+            var data = JSON.stringify({ screen: "sample_page", timestamp: Date.now() });
+            log('→ trackScreenView (fire-and-forget)', 'req');
+            Android.onBridgeRequestFireAndForget('trackScreenView', data);
         }
 
         // Called from native side with the response

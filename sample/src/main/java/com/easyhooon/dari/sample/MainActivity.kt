@@ -95,6 +95,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        /**
+         * Fire-and-forget bridge request without requestId.
+         * No response will be sent back to the web side.
+         */
+        @JavascriptInterface
+        fun onBridgeRequestFireAndForget(handlerName: String, data: String?) {
+            // Pass null as requestId for fire-and-forget messages
+            interceptor?.onWebToAppRequest(handlerName, null, data)
+
+            when (handlerName) {
+                "logEvent" -> handleLogEvent(data)
+                "trackScreenView" -> handleTrackScreenView(data)
+            }
+            // No response - fire-and-forget
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
@@ -199,5 +215,21 @@ class MainActivity : ComponentActivity() {
     private fun handleRequestCameraPermission(requestId: String) {
         pendingPermissionRequestId = requestId
         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    private fun handleLogEvent(data: String?) {
+        val json = data?.let { JSONObject(it) }
+        val event = json?.optString("event", "unknown") ?: "unknown"
+        val screen = json?.optString("screen", "unknown") ?: "unknown"
+        // In a real app, this would send to analytics service
+        android.util.Log.d("Dari-Sample", "Analytics event: $event on $screen")
+    }
+
+    private fun handleTrackScreenView(data: String?) {
+        val json = data?.let { JSONObject(it) }
+        val screen = json?.optString("screen", "unknown") ?: "unknown"
+        val timestamp = json?.optLong("timestamp", 0) ?: 0
+        // In a real app, this would send to analytics service
+        android.util.Log.d("Dari-Sample", "Screen view: $screen at $timestamp")
     }
 }
