@@ -46,16 +46,28 @@ class MessageRepository internal constructor(
         }
     }
 
-    suspend fun addEntry(entry: MessageEntry) {
-        val id = dao.insert(entry.toEntity())
-        val entryWithId = entry.copy(id = id)
+    fun addEntry(entry: MessageEntry) {
+        // Use negative timestamp as temporary id to avoid collision with auto-increment ids
+        val tempId = -entry.requestTimestamp
+        val entryWithTempId = entry.copy(id = tempId)
 
+        // Add to memory first for immediate UI update
         _entries.update { current ->
-            val updated = current + entryWithId
+            val updated = current + entryWithTempId
             if (updated.size > maxEntries) updated.drop(updated.size - maxEntries) else updated
         }
         _messageCount.update { it + 1 }
-        dao.trimOldEntries(maxEntries)
+
+        // Insert to DB asynchronously and update with actual id
+        scope.launch {
+            val actualId = dao.insert(entry.toEntity())
+            _entries.update { current ->
+                current.map { e ->
+                    if (e.id == tempId) e.copy(id = actualId) else e
+                }
+            }
+            dao.trimOldEntries(maxEntries)
+        }
     }
 
     fun updateEntry(requestId: String, transform: (MessageEntry) -> MessageEntry) {

@@ -3,7 +3,6 @@ package com.easyhooon.dari.data
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.MessageStatus
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -11,7 +10,7 @@ import org.junit.Test
 class MessageRepositoryTest {
 
     @Test
-    fun `addEntry is no-op and entries remain empty`() = runBlocking {
+    fun `addEntry is no-op and entries remain empty`() {
         val repository = MessageRepository()
         val entry = MessageEntry(
             requestId = "1",

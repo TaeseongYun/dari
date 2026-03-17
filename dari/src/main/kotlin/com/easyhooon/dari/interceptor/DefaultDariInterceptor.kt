@@ -4,10 +4,6 @@ import com.easyhooon.dari.Dari
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.MessageStatus
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 
 /**
  * Default implementation of [DariInterceptor].
@@ -18,8 +14,6 @@ import kotlinx.coroutines.launch
  */
 class DefaultDariInterceptor : DariInterceptor {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     override fun onWebToAppRequest(handlerName: String, requestId: String?, requestData: String?) {
         val entry = MessageEntry(
             requestId = requestId,
@@ -27,10 +21,8 @@ class DefaultDariInterceptor : DariInterceptor {
             direction = MessageDirection.WEB_TO_APP,
             requestData = requestData,
         )
-        scope.launch {
-            Dari.repository.addEntry(entry)
-            Dari.postMessageNotification(handlerName, MessageDirection.WEB_TO_APP)
-        }
+        Dari.repository.addEntry(entry)
+        Dari.postMessageNotification(handlerName, MessageDirection.WEB_TO_APP)
     }
 
     override fun onWebToAppResponse(
@@ -58,10 +50,8 @@ class DefaultDariInterceptor : DariInterceptor {
             direction = MessageDirection.APP_TO_WEB,
             requestData = data,
         )
-        scope.launch {
-            Dari.repository.addEntry(entry)
-            Dari.postMessageNotification(handlerName, MessageDirection.APP_TO_WEB)
-        }
+        Dari.repository.addEntry(entry)
+        Dari.postMessageNotification(handlerName, MessageDirection.APP_TO_WEB)
     }
 
     override fun onAppToWebResponse(requestId: String?, isSuccess: Boolean, responseData: String?) {
