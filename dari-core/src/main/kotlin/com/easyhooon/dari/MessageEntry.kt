@@ -3,9 +3,14 @@ package com.easyhooon.dari
 /**
  * Data model representing the full lifecycle of a single bridge message.
  * A request and its response are grouped into one entry.
+ *
+ * @property id Auto-generated unique identifier for list key and entry lookup.
+ * @property requestId Optional external request ID for matching request-response pairs.
+ *                     When null, the entry is treated as a standalone (fire-and-forget) message.
  */
 data class MessageEntry(
-    val requestId: String,
+    val id: Long = 0L,
+    val requestId: String? = null,
     val handlerName: String,
     val direction: MessageDirection,
     val requestData: String? = null,

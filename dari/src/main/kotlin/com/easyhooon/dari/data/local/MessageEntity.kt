@@ -33,7 +33,8 @@ internal fun MessageEntry.toEntity(): MessageEntity = MessageEntity(
 )
 
 internal fun MessageEntity.toMessageEntry(): MessageEntry = MessageEntry(
-    requestId = requestId ?: "",
+    id = id,
+    requestId = requestId,
     handlerName = handlerName,
     direction = direction,
     requestData = requestData,
