@@ -41,7 +41,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun addEntry_addsMessageToEntries() {
+    fun addEntry_addsMessageToEntries() = runBlocking {
         val entry = createEntry("1")
         repository.addEntry(entry)
 
@@ -50,7 +50,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun addEntry_incrementsMessageCount() {
+    fun addEntry_incrementsMessageCount() = runBlocking {
         repository.addEntry(createEntry("1"))
         repository.addEntry(createEntry("2"))
 
@@ -58,7 +58,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun addEntry_dropsOldestWhenExceedingMaxEntries() {
+    fun addEntry_dropsOldestWhenExceedingMaxEntries() = runBlocking {
         repository.addEntry(createEntry("1"))
         repository.addEntry(createEntry("2"))
         repository.addEntry(createEntry("3"))
@@ -72,7 +72,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun updateEntry_transformsMatchingEntry() {
+    fun updateEntry_transformsMatchingEntry() = runBlocking {
         repository.addEntry(createEntry("1"))
         repository.updateEntry("1") { it.copy(status = MessageStatus.SUCCESS) }
 
@@ -80,7 +80,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun updateEntry_doesNotAffectNonMatchingEntries() {
+    fun updateEntry_doesNotAffectNonMatchingEntries() = runBlocking {
         repository.addEntry(createEntry("1"))
         repository.addEntry(createEntry("2"))
         repository.updateEntry("1") { it.copy(status = MessageStatus.ERROR) }
@@ -90,7 +90,7 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun clear_removesAllEntriesAndResetsCount() {
+    fun clear_removesAllEntriesAndResetsCount() = runBlocking {
         repository.addEntry(createEntry("1"))
         repository.addEntry(createEntry("2"))
         repository.clear()
