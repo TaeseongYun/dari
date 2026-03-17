@@ -12,7 +12,7 @@ internal interface MessageDao {
     suspend fun getAll(): List<MessageEntity>
 
     @Insert
-    suspend fun insert(entity: MessageEntity)
+    suspend fun insert(entity: MessageEntity): Long
 
     @Query(
         "UPDATE messages SET responseData = :responseData, status = :status, responseTimestamp = :responseTimestamp WHERE requestId = :requestId"

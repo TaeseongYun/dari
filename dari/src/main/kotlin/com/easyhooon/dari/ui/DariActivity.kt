@@ -170,7 +170,7 @@ class DariActivity : ComponentActivity() {
                             LazyColumn {
                                 items(
                                     items = filteredEntries,
-                                    key = { it.requestId },
+                                    key = { it.id },
                                 ) { entry ->
                                     MessageListItem(
                                         entry = entry,
@@ -179,7 +179,7 @@ class DariActivity : ComponentActivity() {
                                                 this@DariActivity,
                                                 DariDetailActivity::class.java,
                                             ).apply {
-                                                putExtra("requestId", entry.requestId)
+                                                putExtra("id", entry.id)
                                             }
                                             startActivity(intent)
                                         },

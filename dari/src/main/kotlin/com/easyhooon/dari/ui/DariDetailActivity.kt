@@ -69,7 +69,8 @@ class DariDetailActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val requestId = intent.getStringExtra("requestId") ?: run {
+        val id = intent.getLongExtra("id", -1L)
+        if (id == -1L) {
             finish()
             return
         }
@@ -77,7 +78,7 @@ class DariDetailActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val entries by Dari.repository.entries.collectAsState()
-                val entry = entries.find { it.requestId == requestId }
+                val entry = entries.find { it.id == id }
 
                 Scaffold(
                     topBar = {
@@ -128,7 +129,7 @@ class DariDetailActivity : ComponentActivity() {
             appendLine("Handler: ${entry.handlerName}")
             appendLine("Direction: $direction")
             appendLine("Status: ${entry.status}")
-            appendLine("Request ID: ${entry.requestId}")
+            appendLine("Request ID: ${entry.requestId ?: "-"}")
             appendLine()
             appendLine("Request time: ${dateFormat.format(Date(entry.requestTimestamp))}")
             entry.responseTimestamp?.let {
@@ -245,7 +246,7 @@ private fun OverviewTab(entry: MessageEntry) {
         OverviewRow("Handler", entry.handlerName)
         OverviewRow("Direction", direction)
         OverviewRow("Status", entry.status.name)
-        OverviewRow("Request ID", entry.requestId)
+        OverviewRow("Request ID", entry.requestId ?: "-")
 
         Spacer(modifier = Modifier.height(8.dp))
 

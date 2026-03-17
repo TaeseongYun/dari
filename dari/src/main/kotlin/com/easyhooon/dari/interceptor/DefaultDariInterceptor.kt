@@ -8,10 +8,13 @@ import com.easyhooon.dari.MessageStatus
 /**
  * Default implementation of [DariInterceptor].
  * Stores intercepted messages in [Dari]'s repository and posts notifications.
+ *
+ * When requestId is null, the entry is treated as a standalone (fire-and-forget) message
+ * that doesn't require request-response pairing.
  */
 class DefaultDariInterceptor : DariInterceptor {
 
-    override fun onWebToAppRequest(handlerName: String, requestId: String, requestData: String?) {
+    override fun onWebToAppRequest(handlerName: String, requestId: String?, requestData: String?) {
         val entry = MessageEntry(
             requestId = requestId,
             handlerName = handlerName,
@@ -24,10 +27,13 @@ class DefaultDariInterceptor : DariInterceptor {
 
     override fun onWebToAppResponse(
         handlerName: String,
-        requestId: String,
+        requestId: String?,
         responseData: String?,
         isSuccess: Boolean,
     ) {
+        // Skip request-response matching when requestId is null (fire-and-forget message)
+        if (requestId == null) return
+
         Dari.repository.updateEntry(requestId) { entry ->
             entry.copy(
                 responseData = responseData,
@@ -37,7 +43,7 @@ class DefaultDariInterceptor : DariInterceptor {
         }
     }
 
-    override fun onAppToWebMessage(handlerName: String, requestId: String, data: String?) {
+    override fun onAppToWebMessage(handlerName: String, requestId: String?, data: String?) {
         val entry = MessageEntry(
             requestId = requestId,
             handlerName = handlerName,
@@ -48,7 +54,10 @@ class DefaultDariInterceptor : DariInterceptor {
         Dari.postMessageNotification(handlerName, MessageDirection.APP_TO_WEB)
     }
 
-    override fun onAppToWebResponse(requestId: String, isSuccess: Boolean, responseData: String?) {
+    override fun onAppToWebResponse(requestId: String?, isSuccess: Boolean, responseData: String?) {
+        // Skip request-response matching when requestId is null (fire-and-forget message)
+        if (requestId == null) return
+
         Dari.repository.updateEntry(requestId) { entry ->
             entry.copy(
                 responseData = responseData,
