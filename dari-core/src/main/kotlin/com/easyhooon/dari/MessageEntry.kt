@@ -20,6 +20,34 @@ data class MessageEntry(
     val requestTimestamp: Long = System.currentTimeMillis(),
     val responseTimestamp: Long? = null,
 ) {
+
+    /**
+     * Secondary constructor preserving the original parameter order for
+     * backward compatibility with external positional callers (e.g., Java).
+     */
+    constructor(
+        id: Long,
+        requestId: String?,
+        handlerName: String,
+        direction: MessageDirection,
+        requestData: String?,
+        responseData: String?,
+        status: MessageStatus,
+        requestTimestamp: Long,
+        responseTimestamp: Long?,
+    ) : this(
+        id = id,
+        requestId = requestId,
+        handlerName = handlerName,
+        direction = direction,
+        tag = null,
+        requestData = requestData,
+        responseData = responseData,
+        status = status,
+        requestTimestamp = requestTimestamp,
+        responseTimestamp = responseTimestamp,
+    )
+
     val durationMs: Long?
         get() = responseTimestamp?.let { it - requestTimestamp }
 

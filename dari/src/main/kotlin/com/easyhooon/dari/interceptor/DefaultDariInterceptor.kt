@@ -37,7 +37,7 @@ class DefaultDariInterceptor(
         // Skip request-response matching when requestId is null (fire-and-forget message)
         if (requestId == null) return
 
-        Dari.repository.updateEntry(requestId) { entry ->
+        Dari.repository.updateEntry(requestId = requestId, tag = tag) { entry ->
             entry.copy(
                 responseData = responseData,
                 status = if (isSuccess) MessageStatus.SUCCESS else MessageStatus.ERROR,
@@ -62,7 +62,7 @@ class DefaultDariInterceptor(
         // Skip request-response matching when requestId is null (fire-and-forget message)
         if (requestId == null) return
 
-        Dari.repository.updateEntry(requestId) { entry ->
+        Dari.repository.updateEntry(requestId = requestId, tag = tag) { entry ->
             entry.copy(
                 responseData = responseData,
                 status = if (isSuccess) MessageStatus.SUCCESS else MessageStatus.ERROR,
