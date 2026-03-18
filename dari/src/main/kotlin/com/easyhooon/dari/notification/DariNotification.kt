@@ -54,16 +54,12 @@ internal class DariNotification(private val context: Context) {
     /**
      * Adds a new bridge message to the notification.
      */
-    fun postMessage(handlerName: String, direction: MessageDirection, tag: String? = null) {
+    fun postMessage(handlerName: String, direction: MessageDirection, @Suppress("UNUSED_PARAMETER") tag: String? = null) {
         val directionLabel = when (direction) {
             MessageDirection.WEB_TO_APP -> "W\u2192A"
             MessageDirection.APP_TO_WEB -> "A\u2192W"
         }
-        val line = if (tag != null) {
-            "$directionLabel  [$tag] $handlerName"
-        } else {
-            "$directionLabel  $handlerName"
-        }
+        val line = "$directionLabel  $handlerName"
 
         if (recentLines.size >= MAX_LINES) {
             recentLines.removeFirst()
