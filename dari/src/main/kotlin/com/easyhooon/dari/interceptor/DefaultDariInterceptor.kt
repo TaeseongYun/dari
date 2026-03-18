@@ -13,7 +13,7 @@ import com.easyhooon.dari.MessageStatus
  * that doesn't require request-response pairing.
  */
 class DefaultDariInterceptor(
-    private val tag: String? = null,
+    override val tag: String? = null,
 ) : DariInterceptor {
 
     override fun onWebToAppRequest(handlerName: String, requestId: String?, requestData: String?) {

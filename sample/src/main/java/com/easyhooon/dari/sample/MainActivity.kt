@@ -150,7 +150,9 @@ class MainActivity : ComponentActivity() {
 
     private fun handleShowToast(handlerName: String, requestId: String, data: String?) {
         val json = data?.let { JSONObject(it) }
-        val message = json?.optString("message", "Hello!") ?: "Hello!"
+        val rawMessage = json?.optString("message", "Hello!") ?: "Hello!"
+        val prefix = interceptor?.tag?.let { "[$it] " } ?: ""
+        val message = "$prefix$rawMessage"
         val duration = if (json?.optString("duration") == "long") {
             Toast.LENGTH_LONG
         } else {
