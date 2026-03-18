@@ -13,6 +13,7 @@ data class MessageEntry(
     val requestId: String? = null,
     val handlerName: String,
     val direction: MessageDirection,
+    val tag: String? = null,
     val requestData: String? = null,
     val responseData: String? = null,
     val status: MessageStatus = MessageStatus.IN_PROGRESS,

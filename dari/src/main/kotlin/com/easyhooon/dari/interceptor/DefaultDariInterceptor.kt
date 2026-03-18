@@ -12,17 +12,20 @@ import com.easyhooon.dari.MessageStatus
  * When requestId is null, the entry is treated as a standalone (fire-and-forget) message
  * that doesn't require request-response pairing.
  */
-class DefaultDariInterceptor : DariInterceptor {
+class DefaultDariInterceptor(
+    private val tag: String? = null,
+) : DariInterceptor {
 
     override fun onWebToAppRequest(handlerName: String, requestId: String?, requestData: String?) {
         val entry = MessageEntry(
             requestId = requestId,
             handlerName = handlerName,
             direction = MessageDirection.WEB_TO_APP,
+            tag = tag,
             requestData = requestData,
         )
         Dari.repository.addEntry(entry)
-        Dari.postMessageNotification(handlerName, MessageDirection.WEB_TO_APP)
+        Dari.postMessageNotification(handlerName, MessageDirection.WEB_TO_APP, tag)
     }
 
     override fun onWebToAppResponse(
@@ -48,10 +51,11 @@ class DefaultDariInterceptor : DariInterceptor {
             requestId = requestId,
             handlerName = handlerName,
             direction = MessageDirection.APP_TO_WEB,
+            tag = tag,
             requestData = data,
         )
         Dari.repository.addEntry(entry)
-        Dari.postMessageNotification(handlerName, MessageDirection.APP_TO_WEB)
+        Dari.postMessageNotification(handlerName, MessageDirection.APP_TO_WEB, tag)
     }
 
     override fun onAppToWebResponse(requestId: String?, isSuccess: Boolean, responseData: String?) {
