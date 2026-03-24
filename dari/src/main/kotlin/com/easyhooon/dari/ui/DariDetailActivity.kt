@@ -169,7 +169,7 @@ class DariDetailActivity : ComponentActivity() {
 
     companion object {
         /** Maximum character length for share Intent text to avoid TransactionTooLargeException */
-        private const val SHARE_MAX_LENGTH = 500_000
+        private const val SHARE_MAX_LENGTH = 100_000
     }
 
     private fun formatJson(jsonString: String?): String? {
