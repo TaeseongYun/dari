@@ -8,4 +8,14 @@ data class DariConfig(
     val maxEntries: Int = 500,
     /** Whether to show the status notification */
     val showNotification: Boolean = true,
-)
+    /** Maximum character length for request/response body data. Bodies exceeding this limit are truncated. */
+    val maxContentLength: Int = DEFAULT_MAX_CONTENT_LENGTH,
+) {
+    init {
+        require(maxContentLength > 0) { "maxContentLength must be greater than 0" }
+    }
+
+    companion object {
+        const val DEFAULT_MAX_CONTENT_LENGTH = 500_000
+    }
+}

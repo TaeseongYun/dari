@@ -98,6 +98,12 @@
         <span>Request containing explicit null values</span>
     </button>
 
+    <div class="section">Large Payload (Truncation Test)</div>
+    <button class="btn btn-red" onclick="fetchLargeData()">
+        Fetch Large Data (~2MB)
+        <span>Simulates a large API response that triggers body truncation</span>
+    </button>
+
     <div class="section">Fire-and-Forget (No Response)</div>
     <button class="btn btn-purple" onclick="logEvent()">
         Log Event
@@ -185,6 +191,12 @@
             });
             log('→ sendWithNullFields', 'req');
             Android.onBridgeRequest('sendWithNullFields', id, data);
+        }
+
+        function fetchLargeData() {
+            var id = createRequestId();
+            log('→ fetchLargeData (~2MB response)', 'req');
+            Android.onBridgeRequest('fetchLargeData', id, null);
         }
 
         function logEvent() {
