@@ -13,6 +13,16 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+tasks.register<Copy>("installGitHooks") {
+    from("scripts/pre-commit")
+    into(".git/hooks")
+    filePermissions { unix("rwxr-xr-x") }
+}
+
+tasks.matching { it.name == "preBuild" }.configureEach {
+    dependsOn("installGitHooks")
+}
+
 allprojects {
     apply {
         plugin(rootProject.libs.plugins.detekt.get().pluginId)
