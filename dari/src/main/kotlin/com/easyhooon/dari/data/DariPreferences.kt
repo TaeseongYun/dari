@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.onStart
  * Persists user-toggled Dari settings (e.g., shake-to-open) so changes survive
  * process restarts and override the initial DariConfig defaults.
  */
-internal class DariPreferences(context: Context, defaultShakeToOpen: Boolean) {
+internal class DariPreferences(
+    context: Context,
+    private val defaultShakeToOpen: Boolean,
+) {
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -24,7 +27,7 @@ internal class DariPreferences(context: Context, defaultShakeToOpen: Boolean) {
     }
 
     var shakeToOpen: Boolean
-        get() = prefs.getBoolean(KEY_SHAKE_TO_OPEN, true)
+        get() = prefs.getBoolean(KEY_SHAKE_TO_OPEN, defaultShakeToOpen)
         set(value) = prefs.edit { putBoolean(KEY_SHAKE_TO_OPEN, value) }
 
     /** Emits the current value immediately and on every subsequent change. */
