@@ -67,6 +67,16 @@ import com.easyhooon.dari.ui.theme.DariTopBarColors
  */
 class DariActivity : ComponentActivity() {
 
+    override fun onStart() {
+        super.onStart()
+        isVisible = true
+    }
+
+    override fun onStop() {
+        super.onStop()
+        isVisible = false
+    }
+
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted ->
@@ -314,5 +324,11 @@ class DariActivity : ComponentActivity() {
                 notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
+
+    internal companion object {
+        @Volatile
+        internal var isVisible: Boolean = false
+            private set
     }
 }
