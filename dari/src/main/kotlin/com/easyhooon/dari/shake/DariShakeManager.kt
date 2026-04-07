@@ -2,6 +2,10 @@ package com.easyhooon.dari.shake
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -45,8 +49,25 @@ internal class DariShakeManager(private val context: Context) {
         if (scope != null) return
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         context.shakeEvents()
-            .onEach { openDariActivity() }
+            .onEach {
+                performHapticFeedback()
+                openDariActivity()
+            }
             .launchIn(scope!!)
+    }
+
+    private fun performHapticFeedback() {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            manager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        } ?: return
+        if (!vibrator.hasVibrator()) return
+        runCatching {
+            vibrator.vibrate(VibrationEffect.createOneShot(80L, VibrationEffect.DEFAULT_AMPLITUDE))
+        }
     }
 
     private fun stopListening() {
