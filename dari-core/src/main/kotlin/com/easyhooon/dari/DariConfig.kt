@@ -11,7 +11,7 @@ data class DariConfig(
     /** Maximum character length for request/response body data. Bodies exceeding this limit are truncated. */
     val maxContentLength: Int = DEFAULT_MAX_CONTENT_LENGTH,
     /** Whether to open DariActivity when the device is shaken */
-    val shakeToOpen: Boolean = true,
+    val shakeToOpen: Boolean = false,
 ) {
     init {
         require(maxContentLength > 0) { "maxContentLength must be greater than 0" }
