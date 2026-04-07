@@ -50,9 +50,8 @@ internal class DariShakeManager(private val context: Context) {
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         context.shakeEvents()
             .onEach {
-                if (!DariActivity.isVisible) {
-                    performHapticFeedback()
-                }
+                if (DariActivity.isVisible) return@onEach
+                performHapticFeedback()
                 openDariActivity()
             }
             .launchIn(scope!!)
