@@ -230,7 +230,7 @@ internal object DariExporter {
     }
 }
 
-enum class ExportFormat {
+internal enum class ExportFormat {
     TEXT,
     JSON,
 }
