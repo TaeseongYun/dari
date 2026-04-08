@@ -32,8 +32,8 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,13 +42,16 @@ import androidx.compose.ui.unit.dp
 import com.easyhooon.dari.Dari
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
-import com.easyhooon.dari.export.DariExporter
 import com.easyhooon.dari.ui.components.JsonViewer
 import com.easyhooon.dari.ui.theme.DariBlue
 import com.easyhooon.dari.ui.theme.DariTopBarColors
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -56,6 +59,12 @@ import java.util.Locale
  * Chucker-style OVERVIEW / REQUEST / RESPONSE tab layout.
  */
 class DariDetailActivity : ComponentActivity() {
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private val prettyJson = Json {
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +78,7 @@ class DariDetailActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                val entries by Dari.repository.entries.collectAsState()
+                val entries by Dari.repository.entries.collectAsStateWithLifecycle()
                 val entry = entries.find { it.id == id }
 
                 Scaffold(
@@ -109,8 +118,42 @@ class DariDetailActivity : ComponentActivity() {
     }
 
     private fun shareAsText(entry: MessageEntry) {
-        val text = DariExporter.formatSingleEntry(entry)
+        val direction = when (entry.direction) {
+            MessageDirection.WEB_TO_APP -> "Web \u2192 App"
+            MessageDirection.APP_TO_WEB -> "App \u2192 Web"
+        }
+        val requestSize = entry.requestData?.toByteArray(Charsets.UTF_8)?.size ?: 0
+        val responseSize = entry.responseData?.toByteArray(Charsets.UTF_8)?.size ?: 0
 
+        val text = buildString {
+            appendLine("Handler: ${entry.handlerName}")
+            appendLine("Direction: $direction")
+            appendLine("Status: ${entry.status}")
+            appendLine("Tag: ${entry.tag ?: "-"}")
+            appendLine("Request ID: ${entry.requestId ?: "-"}")
+            appendLine()
+            appendLine("Request time: ${formatTimestamp(entry.requestTimestamp)}")
+            entry.responseTimestamp?.let {
+                appendLine("Response time: ${formatTimestamp(it)}")
+            }
+            entry.durationMs?.let {
+                appendLine("Duration: $it ms")
+            }
+            appendLine()
+            appendLine("Request size: ${formatSize(requestSize)}${if (entry.requestDataTruncated) " (truncated)" else ""}")
+            appendLine("Response size: ${formatSize(responseSize)}${if (entry.responseDataTruncated) " (truncated)" else ""}")
+            appendLine("Total size: ${formatSize(requestSize + responseSize)}")
+            appendLine()
+            appendLine("---------- Request ----------")
+            appendLine()
+            appendLine(formatJson(entry.requestData) ?: "(empty)")
+            appendLine()
+            appendLine("---------- Response ----------")
+            appendLine()
+            appendLine(formatJson(entry.responseData) ?: "(empty)")
+        }
+
+        // Truncate the final share text to stay within Android's Binder transaction limit (~1MB)
         val safeText = if (text.length > SHARE_MAX_LENGTH) {
             text.take(SHARE_MAX_LENGTH) + "\n\n...[truncated for sharing]"
         } else {
@@ -125,7 +168,24 @@ class DariDetailActivity : ComponentActivity() {
     }
 
     companion object {
+        /** Maximum character length for share Intent text to avoid TransactionTooLargeException */
         private const val SHARE_MAX_LENGTH = 100_000
+    }
+
+    private fun formatJson(jsonString: String?): String? {
+        if (jsonString == null) return null
+        return try {
+            val element = prettyJson.parseToJsonElement(jsonString)
+            prettyJson.encodeToString(JsonElement.serializer(), element)
+        } catch (_: Exception) {
+            jsonString
+        }
+    }
+
+    private fun formatSize(bytes: Int): String = when {
+        bytes < 1024 -> "$bytes B"
+        bytes < 1024 * 1024 -> "${"%.1f".format(bytes / 1024f)} KB"
+        else -> "${"%.1f".format(bytes / (1024f * 1024f))} MB"
     }
 }
 
@@ -181,7 +241,6 @@ private fun DetailTabs(entry: MessageEntry) {
 
 @Composable
 private fun OverviewTab(entry: MessageEntry) {
-    val dateFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.getDefault())
     val requestSize = entry.requestData?.toByteArray(Charsets.UTF_8)?.size ?: 0
     val responseSize = entry.responseData?.toByteArray(Charsets.UTF_8)?.size ?: 0
 
@@ -204,9 +263,9 @@ private fun OverviewTab(entry: MessageEntry) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OverviewRow("Request time", dateFormat.format(Date(entry.requestTimestamp)))
+        OverviewRow("Request time", formatTimestamp(entry.requestTimestamp))
         entry.responseTimestamp?.let {
-            OverviewRow("Response time", dateFormat.format(Date(it)))
+            OverviewRow("Response time", formatTimestamp(it))
         }
         entry.durationMs?.let {
             OverviewRow("Duration", "$it ms")
@@ -260,6 +319,14 @@ private fun DataTab(data: String?) {
         }
     }
 }
+
+private val DETAIL_TIME_FORMATTER: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.getDefault())
+
+private fun formatTimestamp(epochMillis: Long): String =
+    DETAIL_TIME_FORMATTER.format(
+        Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()),
+    )
 
 private fun formatSize(bytes: Int): String = when {
     bytes < 1024 -> "$bytes B"
