@@ -192,4 +192,37 @@ class DariExporterTest {
         assertTrue(parsed.containsKey("response_timestamp"))
         assertTrue(parsed.containsKey("duration_ms"))
     }
+
+    @Test
+    fun `suggestedFilename uses txt extension for TEXT format`() {
+        val name = DariExporter.suggestedFilename(ExportFormat.TEXT)
+        assertTrue(name.startsWith("dari_export_"))
+        assertTrue(name.endsWith(".txt"))
+    }
+
+    @Test
+    fun `suggestedFilename uses json extension for JSON format`() {
+        val name = DariExporter.suggestedFilename(ExportFormat.JSON)
+        assertTrue(name.startsWith("dari_export_"))
+        assertTrue(name.endsWith(".json"))
+    }
+
+    @Test
+    fun `suggestedFilename contains a timestamp segment`() {
+        val name = DariExporter.suggestedFilename(ExportFormat.JSON)
+        // Format: dari_export_yyyyMMdd_HHmmss.json -> strip prefix + extension
+        val timestamp = name.removePrefix("dari_export_").removeSuffix(".json")
+        assertEquals(15, timestamp.length) // yyyyMMdd_HHmmss
+        assertTrue(timestamp.matches(Regex("""\d{8}_\d{6}""")))
+    }
+
+    @Test
+    fun `mimeTypeFor returns text plain for TEXT`() {
+        assertEquals("text/plain", DariExporter.mimeTypeFor(ExportFormat.TEXT))
+    }
+
+    @Test
+    fun `mimeTypeFor returns application json for JSON`() {
+        assertEquals("application/json", DariExporter.mimeTypeFor(ExportFormat.JSON))
+    }
 }

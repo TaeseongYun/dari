@@ -1,9 +1,11 @@
 package com.easyhooon.dari.ui
 
-import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,9 +20,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,14 +35,12 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,9 +57,6 @@ import com.easyhooon.dari.ui.components.JsonViewer
 import com.easyhooon.dari.ui.theme.DariBlue
 import com.easyhooon.dari.ui.theme.DariTopBarColors
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -69,10 +68,25 @@ import java.util.Locale
  */
 class DariDetailActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalSerializationApi::class)
-    private val prettyJson = Json {
-        prettyPrint = true
-        prettyPrintIndent = "  "
+    private var pendingSaveEntry: MessageEntry? = null
+    private var pendingSaveFormat: ExportFormat = ExportFormat.JSON
+
+    private val saveDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("*/*"),
+    ) { uri: Uri? ->
+        val entry = pendingSaveEntry
+        val format = pendingSaveFormat
+        pendingSaveEntry = null
+        if (uri == null || entry == null) return@registerForActivityResult
+        lifecycleScope.launch {
+            DariExporter.saveToUri(this@DariDetailActivity, uri, listOf(entry), format)
+        }
+    }
+
+    private fun launchSave(entry: MessageEntry, format: ExportFormat) {
+        pendingSaveEntry = entry
+        pendingSaveFormat = format
+        saveDocumentLauncher.launch(DariExporter.suggestedFilename(format))
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +103,8 @@ class DariDetailActivity : ComponentActivity() {
             MaterialTheme {
                 val entries by Dari.repository.entries.collectAsStateWithLifecycle()
                 val entry = entries.find { it.id == id }
-                var showShareDialog by rememberSaveable { mutableStateOf(false) }
+                var shareMenuExpanded by remember { mutableStateOf(false) }
+                var downloadMenuExpanded by remember { mutableStateOf(false) }
 
                 Scaffold(
                     topBar = {
@@ -101,9 +116,66 @@ class DariDetailActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
-                                entry?.let {
-                                    IconButton(onClick = { showShareDialog = true }) {
-                                        Icon(Icons.Default.Share, contentDescription = "Share")
+                                entry?.let { current ->
+                                    Box {
+                                        IconButton(onClick = { shareMenuExpanded = true }) {
+                                            Icon(Icons.Default.Share, contentDescription = "Share")
+                                        }
+                                        DropdownMenu(
+                                            expanded = shareMenuExpanded,
+                                            onDismissRequest = { shareMenuExpanded = false },
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text("Share as TEXT") },
+                                                onClick = {
+                                                    shareMenuExpanded = false
+                                                    lifecycleScope.launch {
+                                                        DariExporter.exportAndShareSingle(
+                                                            this@DariDetailActivity,
+                                                            current,
+                                                            ExportFormat.TEXT,
+                                                        )
+                                                    }
+                                                },
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Share as JSON") },
+                                                onClick = {
+                                                    shareMenuExpanded = false
+                                                    lifecycleScope.launch {
+                                                        DariExporter.exportAndShareSingle(
+                                                            this@DariDetailActivity,
+                                                            current,
+                                                            ExportFormat.JSON,
+                                                        )
+                                                    }
+                                                },
+                                            )
+                                        }
+                                    }
+                                    Box {
+                                        IconButton(onClick = { downloadMenuExpanded = true }) {
+                                            Icon(Icons.Default.Download, contentDescription = "Save")
+                                        }
+                                        DropdownMenu(
+                                            expanded = downloadMenuExpanded,
+                                            onDismissRequest = { downloadMenuExpanded = false },
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text("Save as TEXT") },
+                                                onClick = {
+                                                    downloadMenuExpanded = false
+                                                    launchSave(current, ExportFormat.TEXT)
+                                                },
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Save as JSON") },
+                                                onClick = {
+                                                    downloadMenuExpanded = false
+                                                    launchSave(current, ExportFormat.JSON)
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             },
@@ -123,109 +195,9 @@ class DariDetailActivity : ComponentActivity() {
                         }
                     }
 
-                    if (showShareDialog && entry != null) {
-                        AlertDialog(
-                            onDismissRequest = { showShareDialog = false },
-                            title = { Text("Share") },
-                            text = { Text("Choose share format") },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    showShareDialog = false
-                                    lifecycleScope.launch {
-                                        DariExporter.exportAndShareSingle(
-                                            this@DariDetailActivity,
-                                            entry,
-                                            ExportFormat.JSON,
-                                        )
-                                    }
-                                }) {
-                                    Text("JSON")
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = {
-                                    showShareDialog = false
-                                    shareAsText(entry)
-                                }) {
-                                    Text("TEXT")
-                                }
-                            },
-                        )
-                    }
                 }
             }
         }
-    }
-
-    private fun shareAsText(entry: MessageEntry) {
-        val direction = when (entry.direction) {
-            MessageDirection.WEB_TO_APP -> "Web \u2192 App"
-            MessageDirection.APP_TO_WEB -> "App \u2192 Web"
-        }
-        val requestSize = entry.requestData?.toByteArray(Charsets.UTF_8)?.size ?: 0
-        val responseSize = entry.responseData?.toByteArray(Charsets.UTF_8)?.size ?: 0
-
-        val text = buildString {
-            appendLine("Handler: ${entry.handlerName}")
-            appendLine("Direction: $direction")
-            appendLine("Status: ${entry.status}")
-            appendLine("Tag: ${entry.tag ?: "-"}")
-            appendLine("Request ID: ${entry.requestId ?: "-"}")
-            appendLine()
-            appendLine("Request time: ${formatTimestamp(entry.requestTimestamp)}")
-            entry.responseTimestamp?.let {
-                appendLine("Response time: ${formatTimestamp(it)}")
-            }
-            entry.durationMs?.let {
-                appendLine("Duration: $it ms")
-            }
-            appendLine()
-            appendLine("Request size: ${formatSize(requestSize)}${if (entry.requestDataTruncated) " (truncated)" else ""}")
-            appendLine("Response size: ${formatSize(responseSize)}${if (entry.responseDataTruncated) " (truncated)" else ""}")
-            appendLine("Total size: ${formatSize(requestSize + responseSize)}")
-            appendLine()
-            appendLine("---------- Request ----------")
-            appendLine()
-            appendLine(formatJson(entry.requestData) ?: "(empty)")
-            appendLine()
-            appendLine("---------- Response ----------")
-            appendLine()
-            appendLine(formatJson(entry.responseData) ?: "(empty)")
-        }
-
-        // Truncate the final share text to stay within Android's Binder transaction limit (~1MB)
-        val safeText = if (text.length > SHARE_MAX_LENGTH) {
-            text.take(SHARE_MAX_LENGTH) + "\n\n...[truncated for sharing]"
-        } else {
-            text
-        }
-
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, safeText)
-        }
-        startActivity(Intent.createChooser(intent, "Share Bridge Message"))
-    }
-
-    companion object {
-        /** Maximum character length for share Intent text to avoid TransactionTooLargeException */
-        private const val SHARE_MAX_LENGTH = 100_000
-    }
-
-    private fun formatJson(jsonString: String?): String? {
-        if (jsonString == null) return null
-        return try {
-            val element = prettyJson.parseToJsonElement(jsonString)
-            prettyJson.encodeToString(JsonElement.serializer(), element)
-        } catch (_: Exception) {
-            jsonString
-        }
-    }
-
-    private fun formatSize(bytes: Int): String = when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "${"%.1f".format(bytes / 1024f)} KB"
-        else -> "${"%.1f".format(bytes / (1024f * 1024f))} MB"
     }
 }
 

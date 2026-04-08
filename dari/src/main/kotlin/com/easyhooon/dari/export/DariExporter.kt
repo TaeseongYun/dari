@@ -2,6 +2,7 @@ package com.easyhooon.dari.export
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.content.FileProvider
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
@@ -35,6 +36,49 @@ internal object DariExporter {
 
     suspend fun exportAndShareSingle(context: Context, entry: MessageEntry, format: ExportFormat) {
         exportAndShare(context, listOf(entry), format)
+    }
+
+    /**
+     * Writes the export payload to a user-chosen location via a Storage Access
+     * Framework [Uri] (e.g. from `ActivityResultContracts.CreateDocument`).
+     *
+     * We intentionally take a [Uri] rather than a [File] because Android 10+'s
+     * Scoped Storage forbids writing to arbitrary external paths. SAF is the
+     * only supported way to let the user pick a persistent location (Downloads,
+     * Drive, etc.) without requesting `WRITE_EXTERNAL_STORAGE`. The picker
+     * returns a `content://` URI backed by a `DocumentProvider`, so we must go
+     * through [android.content.ContentResolver.openOutputStream] instead of
+     * `File` APIs.
+     */
+    suspend fun saveToUri(
+        context: Context,
+        uri: Uri,
+        entries: List<MessageEntry>,
+        format: ExportFormat,
+    ) {
+        withContext(Dispatchers.IO) {
+            val content = when (format) {
+                ExportFormat.TEXT -> formatAsText(entries)
+                ExportFormat.JSON -> formatAsJson(entries)
+            }
+            context.contentResolver.openOutputStream(uri)?.use { stream ->
+                stream.write(content.toByteArray(Charsets.UTF_8))
+            }
+        }
+    }
+
+    fun suggestedFilename(format: ExportFormat): String {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val extension = when (format) {
+            ExportFormat.TEXT -> "txt"
+            ExportFormat.JSON -> "json"
+        }
+        return "dari_export_$timestamp.$extension"
+    }
+
+    fun mimeTypeFor(format: ExportFormat): String = when (format) {
+        ExportFormat.TEXT -> "text/plain"
+        ExportFormat.JSON -> "application/json"
     }
 
     private fun writeExportFile(
