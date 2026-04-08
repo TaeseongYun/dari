@@ -69,6 +69,7 @@ import com.easyhooon.dari.export.DariExporter
 import com.easyhooon.dari.export.ExportFormat
 import com.easyhooon.dari.ui.components.MessageListItem
 import com.easyhooon.dari.ui.components.SettingsBottomSheet
+import com.easyhooon.dari.ui.theme.DariTheme
 import com.easyhooon.dari.ui.theme.DariTopBarColors
 
 /**
@@ -135,7 +136,10 @@ class DariActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
 
         setContent {
-            MaterialTheme {
+            val darkMode by Dari.preferences.darkModeFlow().collectAsStateWithLifecycle(
+                initialValue = Dari.preferences.darkMode,
+            )
+            DariTheme(darkTheme = darkMode) {
                 val entries by Dari.repository.entries.collectAsStateWithLifecycle()
                 val shakeToOpen by Dari.preferences.shakeToOpenFlow().collectAsStateWithLifecycle(
                     initialValue = Dari.preferences.shakeToOpen,
@@ -398,6 +402,8 @@ class DariActivity : ComponentActivity() {
                         SettingsBottomSheet(
                             shakeToOpen = shakeToOpen,
                             onShakeToOpenChange = { Dari.setShakeToOpenEnabled(it) },
+                            darkMode = darkMode,
+                            onDarkModeChange = { Dari.setDarkMode(it) },
                             onDismiss = { showSettingsSheet = false },
                         )
                     }

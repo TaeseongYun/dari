@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -46,10 +48,14 @@ private const val GITHUB_URL = "https://github.com/easyhooon/dari"
 internal fun SettingsBottomSheet(
     shakeToOpen: Boolean,
     onShakeToOpenChange: (Boolean) -> Unit,
+    darkMode: Boolean?,
+    onDarkModeChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
+    // If the user hasn't set a preference, show the system value in the switch.
+    val isDark = darkMode ?: isSystemInDarkTheme()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -77,6 +83,13 @@ internal fun SettingsBottomSheet(
                 description = "Open Dari by shaking your device",
                 checked = shakeToOpen,
                 onCheckedChange = onShakeToOpenChange,
+            )
+            SettingToggleRow(
+                icon = Icons.Default.DarkMode,
+                title = "Dark theme",
+                description = "Use dark colors inside Dari screens",
+                checked = isDark,
+                onCheckedChange = onDarkModeChange,
             )
 
             HorizontalDivider(

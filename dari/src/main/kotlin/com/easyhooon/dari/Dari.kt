@@ -67,8 +67,16 @@ object Dari {
      * Enable or disable shake-to-open at runtime. Persists across process restarts.
      */
     fun setShakeToOpenEnabled(enabled: Boolean) {
-        preferences.shakeToOpen = enabled
+        preferences.setShakeToOpen(enabled)
         applyShakeToOpen(enabled)
+    }
+
+    /**
+     * Override the dark-mode setting at runtime. Pass `null` to fall back to
+     * the system theme. Persists across process restarts.
+     */
+    fun setDarkMode(value: Boolean?) {
+        preferences.setDarkMode(value)
     }
 
     private fun applyShakeToOpen(enabled: Boolean) {

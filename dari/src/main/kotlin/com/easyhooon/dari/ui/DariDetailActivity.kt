@@ -55,6 +55,7 @@ import com.easyhooon.dari.export.DariExporter
 import com.easyhooon.dari.export.ExportFormat
 import com.easyhooon.dari.ui.components.JsonViewer
 import com.easyhooon.dari.ui.theme.DariBlue
+import com.easyhooon.dari.ui.theme.DariTheme
 import com.easyhooon.dari.ui.theme.DariTopBarColors
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -111,7 +112,10 @@ class DariDetailActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme {
+            val darkMode by Dari.preferences.darkModeFlow().collectAsStateWithLifecycle(
+                initialValue = Dari.preferences.darkMode,
+            )
+            DariTheme(darkTheme = darkMode) {
                 val entries by Dari.repository.entries.collectAsStateWithLifecycle()
                 val entry = entries.find { it.id == id }
                 var shareMenuExpanded by remember { mutableStateOf(false) }
