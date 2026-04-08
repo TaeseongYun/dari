@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.DarkMode
@@ -24,6 +23,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -49,13 +51,11 @@ internal fun SettingsBottomSheet(
     shakeToOpen: Boolean,
     onShakeToOpenChange: (Boolean) -> Unit,
     darkMode: Boolean?,
-    onDarkModeChange: (Boolean) -> Unit,
+    onDarkModeChange: (Boolean?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
-    // If the user hasn't set a preference, show the system value in the switch.
-    val isDark = darkMode ?: isSystemInDarkTheme()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -84,12 +84,9 @@ internal fun SettingsBottomSheet(
                 checked = shakeToOpen,
                 onCheckedChange = onShakeToOpenChange,
             )
-            SettingToggleRow(
-                icon = Icons.Default.DarkMode,
-                title = "Dark theme",
-                description = "Use dark colors inside Dari screens",
-                checked = isDark,
-                onCheckedChange = onDarkModeChange,
+            DarkModeRow(
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange,
             )
 
             HorizontalDivider(
@@ -124,6 +121,67 @@ private fun SectionHeader(text: String) {
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
     )
+}
+
+private enum class DarkModeOption(val label: String, val value: Boolean?) {
+    System(label = "System", value = null),
+    Light(label = "Light", value = false),
+    Dark(label = "Dark", value = true),
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DarkModeRow(
+    darkMode: Boolean?,
+    onDarkModeChange: (Boolean?) -> Unit,
+) {
+    val selected = DarkModeOption.entries.first { it.value == darkMode }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(DariBlue.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.DarkMode,
+                contentDescription = null,
+                tint = DariBlue,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Spacer(Modifier.size(16.dp))
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = "Dark theme",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+            )
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                DarkModeOption.entries.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = option == selected,
+                        onClick = { onDarkModeChange(option.value) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = DarkModeOption.entries.size,
+                        ),
+                    ) {
+                        Text(option.label)
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
