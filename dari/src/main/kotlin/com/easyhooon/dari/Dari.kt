@@ -56,10 +56,15 @@ object Dari {
             repository = MessageRepository(database!!, config.maxEntries)
         }
 
-        preferences = DariPreferences(
-            dataStore = createPreferenceDataStore(this.context),
-            defaultShakeToOpen = config.shakeToOpen,
-        )
+        // Guard re-initialization: DataStore throws IllegalStateException if a
+        // second instance is created for the same file, which would happen on
+        // any subsequent Dari.init() call (tests, double-startup, etc.).
+        if (!::preferences.isInitialized) {
+            preferences = DariPreferences(
+                dataStore = createPreferenceDataStore(this.context),
+                defaultShakeToOpen = config.shakeToOpen,
+            )
+        }
 
         if (config.showNotification) {
             notification = DariNotification(this.context)
