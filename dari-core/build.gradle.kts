@@ -19,6 +19,10 @@ android {
     }
 }
 
+dependencies {
+    testImplementation(libs.junit)
+}
+
 mavenPublishing {
     coordinates(
         groupId = "io.github.easyhooon",

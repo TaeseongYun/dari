@@ -53,7 +53,11 @@ object Dari {
 
         if (database == null) {
             database = DariDatabase.create(this.context)
-            repository = MessageRepository(database!!, config.maxEntries)
+            repository = MessageRepository(
+                database = database!!,
+                maxEntries = config.maxEntries,
+                retentionPeriodMs = config.retentionPeriod?.inWholeMilliseconds,
+            )
         }
 
         // Guard re-initialization: DataStore throws IllegalStateException if a
