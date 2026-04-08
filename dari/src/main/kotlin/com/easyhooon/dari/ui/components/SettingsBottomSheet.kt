@@ -162,7 +162,7 @@ private fun DarkModeRow(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
-                text = "Dark theme",
+                text = "Theme",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
             )
