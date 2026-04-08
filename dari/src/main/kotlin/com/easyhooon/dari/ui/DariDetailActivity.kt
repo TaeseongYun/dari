@@ -45,7 +45,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.easyhooon.dari.Dari
@@ -54,7 +53,9 @@ import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.export.DariExporter
 import com.easyhooon.dari.export.ExportFormat
 import com.easyhooon.dari.ui.components.JsonViewer
-import com.easyhooon.dari.ui.theme.DariBlue
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.easyhooon.dari.ui.theme.ApplyDariSystemBars
+import com.easyhooon.dari.ui.theme.DariTheme
 import com.easyhooon.dari.ui.theme.DariTopBarColors
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -111,7 +112,12 @@ class DariDetailActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme {
+            val darkMode by Dari.preferences.darkModeFlow().collectAsStateWithLifecycle(
+                initialValue = Dari.preferences.darkMode,
+            )
+            val isDark = darkMode ?: isSystemInDarkTheme()
+            ApplyDariSystemBars(isDark)
+            DariTheme(darkTheme = darkMode) {
                 val entries by Dari.repository.entries.collectAsStateWithLifecycle()
                 val entry = entries.find { it.id == id }
                 var shareMenuExpanded by remember { mutableStateOf(false) }
@@ -219,12 +225,12 @@ private fun DetailTabs(entry: MessageEntry) {
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(
             selectedTabIndex = pagerState.currentPage,
-            containerColor = DariBlue,
-            contentColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             },
         ) {
@@ -236,9 +242,9 @@ private fun DetailTabs(entry: MessageEntry) {
                         Text(
                             text = title,
                             color = if (pagerState.currentPage == index) {
-                                Color.White
+                                MaterialTheme.colorScheme.onPrimary
                             } else {
-                                Color.White.copy(alpha = 0.6f)
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
                             },
                         )
                     },

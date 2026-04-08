@@ -14,6 +14,7 @@
 | internal 클래스의 public 보조 타입을 internal로 축소 | 1 | #28 | 2026-04-08 |
 | SAF CreateDocument 와일드카드 MIME → 포맷별 launcher | 1 | #28 | 2026-04-08 |
 | 문서/템플릿 이중 언어 불일치 수정 (skip 마커, placeholder) | 2 | #28 | 2026-04-08 |
+| 싱글톤 재초기화 시 외부 리소스 중복 생성 가드 (DataStore/DB) | 1 | #35 | 2026-04-08 |
 
 ## 거절 패턴 (반복적으로 거절한 코멘트 유형)
 
