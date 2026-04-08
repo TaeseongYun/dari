@@ -19,17 +19,17 @@ import androidx.compose.ui.graphics.toArgb
 val DariBlue = Color(0xFF2D6AB1)
 
 /** Slightly dimmer blue for the dark theme so it doesn't glow on AMOLED. */
-private val DariBlueDark = Color(0xFF1F4F87)
+internal val DariBlueDark = Color(0xFF1F4F87)
 
 // Soft neutral grays for dark mode — avoids the pure-black Material3 default
 // so the UI reads as "dimmed" rather than "OLED black".
-internal val DariDarkBackground = Color(0xFF1C1C1E)
-private val DariDarkSurface = Color(0xFF2A2A2D)
-private val DariDarkSurfaceVariant = Color(0xFF3A3A3D)
-private val DariDarkOnSurface = Color(0xFFE5E5EA)
-private val DariDarkOnSurfaceVariant = Color(0xFFAEAEB2)
-private val DariDarkOutline = Color(0xFF48484A)
-private val DariDarkOutlineVariant = Color(0xFF3A3A3D)
+internal val DariDarkBackground = Color(0xFF242428)
+private val DariDarkSurface = Color(0xFF323236)
+private val DariDarkSurfaceVariant = Color(0xFF42424A)
+private val DariDarkOnSurface = Color(0xFFE8E8EC)
+private val DariDarkOnSurfaceVariant = Color(0xFFB5B5BA)
+private val DariDarkOutline = Color(0xFF505056)
+private val DariDarkOutlineVariant = Color(0xFF42424A)
 
 private val DariLightColorScheme = lightColorScheme(
     primary = DariBlue,
@@ -78,7 +78,9 @@ internal fun DariTheme(
 /**
  * Applies edge-to-edge with system bar styles that follow Dari's theme:
  *
- * - **Status bar** stays dark (tinted by the blue top bar content).
+ * - **Status bar** matches the top bar — [DariBlue] in light mode,
+ *   [DariBlueDark] in dark mode — so the two visually merge into a single
+ *   colored band instead of leaving an off-color strip on top.
  * - **Navigation bar** matches the app background — white in light mode,
  *   [DariDarkBackground] in dark mode — so it blends into the list area.
  *
@@ -89,7 +91,8 @@ internal fun DariTheme(
 internal fun ApplyDariSystemBars(isDark: Boolean) {
     val activity = LocalActivity.current as? ComponentActivity ?: return
     DisposableEffect(isDark) {
-        val statusBarStyle = SystemBarStyle.dark(DariBlue.toArgb())
+        val statusBarColor = if (isDark) DariBlueDark else DariBlue
+        val statusBarStyle = SystemBarStyle.dark(statusBarColor.toArgb())
         val navBarStyle = if (isDark) {
             SystemBarStyle.dark(DariDarkBackground.toArgb())
         } else {
