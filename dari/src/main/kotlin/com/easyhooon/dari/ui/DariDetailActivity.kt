@@ -348,11 +348,14 @@ private fun DataTab(data: String?) {
     }
 }
 
-private val DETAIL_TIME_FORMATTER: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.getDefault())
+// `get()` instead of a cached val so a locale change at runtime is picked up
+// on the next format call instead of staying pinned to the locale at class
+// load time.
+private val detailTimeFormatter: DateTimeFormatter
+    get() = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.getDefault())
 
 private fun formatTimestamp(epochMillis: Long): String =
-    DETAIL_TIME_FORMATTER.format(
+    detailTimeFormatter.format(
         Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()),
     )
 
