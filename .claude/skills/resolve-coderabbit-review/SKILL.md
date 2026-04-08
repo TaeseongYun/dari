@@ -236,12 +236,14 @@ EOF
 모든 코멘트 처리가 완료되면, **PR에 일반 코멘트로 처리 요약을 게시**한다.
 여러 번 실행해도 요약 코멘트가 중복되지 않도록, 기존 코멘트가 있으면 병합하여 갱신한다.
 
+**언어 정책**: PR 요약 코멘트도 **영어로 작성**한다 (라이브러리 저장소 — 리뷰 응답 대댓글과 동일한 정책).
+
 #### 6-1. 기존 요약 코멘트 검색
 
-PR의 일반 코멘트(issue comment) 중 `🤖 CodeRabbit 리뷰 반영 결과` 헤더가 포함된 코멘트를 검색한다.
+PR의 일반 코멘트(issue comment) 중 `🤖 CodeRabbit Review Resolution` 헤더가 포함된 코멘트를 검색한다.
 
 ```bash
-gh api repos/{OWNER}/{REPO}/issues/{PR_NUMBER}/comments --jq '.[] | select(.body | contains("🤖 CodeRabbit 리뷰 반영 결과")) | {id, body}'
+gh api repos/{OWNER}/{REPO}/issues/{PR_NUMBER}/comments --jq '.[] | select(.body | contains("🤖 CodeRabbit Review Resolution")) | {id, body}'
 ```
 
 #### 6-2a. 기존 코멘트가 있는 경우 (병합)
@@ -265,18 +267,18 @@ gh api repos/{OWNER}/{REPO}/issues/comments/{COMMENT_ID} -X DELETE
 
 ```bash
 gh pr comment {PR_NUMBER} --body "$(cat <<'EOF'
-## 🤖 CodeRabbit 리뷰 반영 결과
+## 🤖 CodeRabbit Review Resolution
 
-**전체 미해결 코멘트**: {N}개 | **반영**: {X}개 | **거절**: {Y}개
+**Total unresolved**: {N} | **Applied**: {X} | **Declined**: {Y}
 
-### ✅ 반영 내역
-| 중요도 | 파일 | 코멘트 내용 | 수정 사항 | 커밋 |
-|:------:|------|------------|----------|------|
-| {emoji} | `{path}` | {CodeRabbit 지적 요약} ([링크](https://github.com/{OWNER}/{REPO}/pull/{PR_NUMBER}#discussion_r{COMMENT_DATABASE_ID})) | {수정 내용 요약} | [{short_hash}](https://github.com/{OWNER}/{REPO}/commit/{full_hash}) |
+### ✅ Applied
+| Severity | File | Comment | Change | Commit |
+|:--------:|------|---------|--------|--------|
+| {emoji} | `{path}` | {CodeRabbit summary} ([link](https://github.com/{OWNER}/{REPO}/pull/{PR_NUMBER}#discussion_r{COMMENT_DATABASE_ID})) | {change summary} | [{short_hash}](https://github.com/{OWNER}/{REPO}/commit/{full_hash}) |
 
-### ❌ 거절 내역
-| 중요도 | 파일 | 코멘트 내용 | 거절 사유 |
-|:------:|------|------------|----------|
+### ❌ Declined
+| Severity | File | Comment | Reason |
+|:--------:|------|---------|--------|
 | {emoji} | `{path}` | {CodeRabbit 지적 요약} ([링크](https://github.com/{OWNER}/{REPO}/pull/{PR_NUMBER}#discussion_r{COMMENT_DATABASE_ID})) | {거절 사유 요약} |
 EOF
 )"
