@@ -39,8 +39,7 @@ internal object DariExporter {
         format: ExportFormat,
     ): File {
         val exportDir = File(context.cacheDir, EXPORT_DIR).apply {
-            if (exists()) deleteRecursively()
-            mkdirs()
+            if (!exists()) mkdirs()
         }
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
