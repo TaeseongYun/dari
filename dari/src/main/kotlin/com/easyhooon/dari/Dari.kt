@@ -49,7 +49,11 @@ object Dari {
 
         if (database == null) {
             database = DariDatabase.create(this.context)
-            repository = MessageRepository(database!!, config.maxEntries)
+            repository = MessageRepository(
+                database = database!!,
+                maxEntries = config.maxEntries,
+                retentionPeriodMs = config.retentionPeriod?.inWholeMilliseconds,
+            )
         }
 
         preferences = DariPreferences(this.context, defaultShakeToOpen = config.shakeToOpen)

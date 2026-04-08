@@ -1,5 +1,7 @@
 package com.easyhooon.dari
 
+import kotlin.time.Duration
+
 /**
  * Dari configuration
  */
@@ -12,9 +14,26 @@ data class DariConfig(
     val maxContentLength: Int = DEFAULT_MAX_CONTENT_LENGTH,
     /** Whether to open DariActivity when the device is shaken */
     val shakeToOpen: Boolean = false,
+    /**
+     * Optional time-based retention policy. Messages older than this duration are deleted
+     * on repository initialization and whenever a new message is added.
+     *
+     * `null` (default) disables TTL cleanup, preserving the previous behavior.
+     * Works alongside [maxEntries] — whichever limit is hit first takes effect.
+     *
+     * Suggested values (pick based on how long your debug sessions run):
+     * - Single interactive debugging session: `1.hours` ~ `6.hours`
+     * - Developer debug build that stays installed across days: `1.days` ~ `3.days`
+     *
+     * Example: `retentionPeriod = 1.days`
+     */
+    val retentionPeriod: Duration? = null,
 ) {
     init {
         require(maxContentLength > 0) { "maxContentLength must be greater than 0" }
+        require(retentionPeriod == null || retentionPeriod.isPositive()) {
+            "retentionPeriod must be positive when set"
+        }
     }
 
     companion object {

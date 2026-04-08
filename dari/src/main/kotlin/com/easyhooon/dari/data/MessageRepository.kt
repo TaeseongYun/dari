@@ -24,6 +24,13 @@ import kotlinx.coroutines.launch
 class MessageRepository internal constructor(
     private val database: DariDatabase,
     private val maxEntries: Int = 500,
+    /**
+     * Optional TTL in milliseconds. Messages with `requestTimestamp` older than
+     * `now - retentionPeriodMs` are pruned on init and after every insert.
+     * `null` disables TTL cleanup.
+     */
+    private val retentionPeriodMs: Long? = null,
+    private val clock: () -> Long = { System.currentTimeMillis() },
 ) {
 
     private val dao = database.messageDao()
@@ -39,6 +46,10 @@ class MessageRepository internal constructor(
 
     init {
         scope.launch {
+            val cutoff = retentionCutoff()
+            if (cutoff != null) {
+                dao.deleteOlderThan(cutoff)
+            }
             val persisted = dao.getAll().map { it.toMessageEntry() }
             _entries.value = persisted
             _messageCount.value = persisted.size
@@ -46,14 +57,18 @@ class MessageRepository internal constructor(
         }
     }
 
+    private fun retentionCutoff(): Long? =
+        RetentionPolicy.cutoff(clock(), retentionPeriodMs)
+
     fun addEntry(entry: MessageEntry) {
         // Use negative timestamp as temporary id to avoid collision with auto-increment ids
         val tempId = -entry.requestTimestamp
         val entryWithTempId = entry.copy(id = tempId)
 
-        // Add to memory first for immediate UI update
+        // Add to memory first for immediate UI update (applying TTL filter on the fly)
         _entries.update { current ->
-            val updated = current + entryWithTempId
+            val pruned = RetentionPolicy.prune(current, retentionCutoff())
+            val updated = pruned + entryWithTempId
             if (updated.size > maxEntries) updated.drop(updated.size - maxEntries) else updated
         }
         _messageCount.update { it + 1 }
@@ -67,6 +82,7 @@ class MessageRepository internal constructor(
                 }
             }
             dao.trimOldEntries(maxEntries)
+            retentionCutoff()?.let { dao.deleteOlderThan(it) }
         }
     }
 

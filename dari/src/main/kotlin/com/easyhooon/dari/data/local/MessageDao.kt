@@ -31,6 +31,9 @@ internal interface MessageDao {
     )
     suspend fun trimOldEntries(maxEntries: Int)
 
+    @Query("DELETE FROM messages WHERE requestTimestamp < :cutoffTimestamp")
+    suspend fun deleteOlderThan(cutoffTimestamp: Long)
+
     @Query("DELETE FROM messages")
     suspend fun clear()
 }
