@@ -3,6 +3,7 @@ package com.easyhooon.dari.export
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.FileProvider
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
@@ -11,6 +12,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,6 +26,7 @@ internal object DariExporter {
         encodeDefaults = true
     }
 
+    private const val LOG_TAG = "DariExporter"
     private const val EXPORT_DIR = "dari_export"
     private const val AUTHORITY_SUFFIX = ".dari.fileprovider"
 
@@ -81,15 +84,22 @@ internal object DariExporter {
         uri: Uri,
         entries: List<MessageEntry>,
         format: ExportFormat,
-    ) {
-        withContext(Dispatchers.IO) {
-            val content = when (format) {
-                ExportFormat.TEXT -> formatAsText(entries)
-                ExportFormat.JSON -> formatAsJson(entries)
+    ): Boolean = withContext(Dispatchers.IO) {
+        val content = when (format) {
+            ExportFormat.TEXT -> formatAsText(entries)
+            ExportFormat.JSON -> formatAsJson(entries)
+        }
+        try {
+            val stream = context.contentResolver.openOutputStream(uri)
+            if (stream == null) {
+                Log.w(LOG_TAG, "saveToUri: resolver returned null stream for $uri")
+                return@withContext false
             }
-            context.contentResolver.openOutputStream(uri)?.use { stream ->
-                stream.write(content.toByteArray(Charsets.UTF_8))
-            }
+            stream.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+            true
+        } catch (ioe: IOException) {
+            Log.e(LOG_TAG, "saveToUri: failed to write to $uri", ioe)
+            false
         }
     }
 
