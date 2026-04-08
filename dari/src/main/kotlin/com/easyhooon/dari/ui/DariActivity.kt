@@ -1,6 +1,7 @@
 package com.easyhooon.dari.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,9 +27,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,9 +52,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -57,6 +64,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.easyhooon.dari.Dari
+import com.easyhooon.dari.MessageEntry
+import com.easyhooon.dari.export.DariExporter
+import com.easyhooon.dari.export.ExportFormat
 import com.easyhooon.dari.ui.components.MessageListItem
 import com.easyhooon.dari.ui.components.SettingsBottomSheet
 import com.easyhooon.dari.ui.theme.DariTopBarColors
@@ -85,6 +95,39 @@ class DariActivity : ComponentActivity() {
         }
     }
 
+    // Entries captured at launch time, consumed in the SAF callback.
+    // Two launchers are registered (one per format) so document providers
+    // receive the correct MIME type hint — CreateDocument fixes the type at
+    // registration, not per-launch.
+    private var pendingSaveEntries: List<MessageEntry> = emptyList()
+
+    private val saveTextDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument(DariExporter.mimeTypeFor(ExportFormat.TEXT)),
+    ) { uri: Uri? -> handleSaveResult(uri, ExportFormat.TEXT) }
+
+    private val saveJsonDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument(DariExporter.mimeTypeFor(ExportFormat.JSON)),
+    ) { uri: Uri? -> handleSaveResult(uri, ExportFormat.JSON) }
+
+    private fun handleSaveResult(uri: Uri?, format: ExportFormat) {
+        val entries = pendingSaveEntries
+        pendingSaveEntries = emptyList()
+        if (uri == null || entries.isEmpty()) return
+        lifecycleScope.launch {
+            DariExporter.saveToUri(this@DariActivity, uri, entries, format)
+        }
+    }
+
+    internal fun launchSave(entries: List<MessageEntry>, format: ExportFormat) {
+        if (entries.isEmpty()) return
+        pendingSaveEntries = entries
+        val launcher = when (format) {
+            ExportFormat.TEXT -> saveTextDocumentLauncher
+            ExportFormat.JSON -> saveJsonDocumentLauncher
+        }
+        launcher.launch(DariExporter.suggestedFilename(format))
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +144,8 @@ class DariActivity : ComponentActivity() {
                 var searchQuery by rememberSaveable { mutableStateOf("") }
                 var selectedTag by rememberSaveable { mutableStateOf<String?>(null) }
                 var showClearDialog by rememberSaveable { mutableStateOf(false) }
+                var shareMenuExpanded by remember { mutableStateOf(false) }
+                var downloadMenuExpanded by remember { mutableStateOf(false) }
                 var showSettingsSheet by rememberSaveable { mutableStateOf(false) }
                 val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -182,6 +227,72 @@ class DariActivity : ComponentActivity() {
                                 if (!isSearchMode) {
                                     IconButton(onClick = { isSearchMode = true }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
+                                    }
+                                }
+                                Box {
+                                    IconButton(
+                                        onClick = { shareMenuExpanded = true },
+                                        enabled = filteredEntries.isNotEmpty(),
+                                    ) {
+                                        Icon(Icons.Default.Share, contentDescription = "Share")
+                                    }
+                                    DropdownMenu(
+                                        expanded = shareMenuExpanded,
+                                        onDismissRequest = { shareMenuExpanded = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Share as TEXT") },
+                                            onClick = {
+                                                shareMenuExpanded = false
+                                                lifecycleScope.launch {
+                                                    DariExporter.exportAndShare(
+                                                        this@DariActivity,
+                                                        filteredEntries,
+                                                        ExportFormat.TEXT,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Share as JSON") },
+                                            onClick = {
+                                                shareMenuExpanded = false
+                                                lifecycleScope.launch {
+                                                    DariExporter.exportAndShare(
+                                                        this@DariActivity,
+                                                        filteredEntries,
+                                                        ExportFormat.JSON,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                    }
+                                }
+                                Box {
+                                    IconButton(
+                                        onClick = { downloadMenuExpanded = true },
+                                        enabled = filteredEntries.isNotEmpty(),
+                                    ) {
+                                        Icon(Icons.Default.Download, contentDescription = "Save")
+                                    }
+                                    DropdownMenu(
+                                        expanded = downloadMenuExpanded,
+                                        onDismissRequest = { downloadMenuExpanded = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Save as TEXT") },
+                                            onClick = {
+                                                downloadMenuExpanded = false
+                                                launchSave(filteredEntries, ExportFormat.TEXT)
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Save as JSON") },
+                                            onClick = {
+                                                downloadMenuExpanded = false
+                                                launchSave(filteredEntries, ExportFormat.JSON)
+                                            },
+                                        )
                                     }
                                 }
                                 IconButton(onClick = { showClearDialog = true }) {
@@ -311,6 +422,7 @@ class DariActivity : ComponentActivity() {
                             },
                         )
                     }
+
                 }
             }
         }
@@ -327,6 +439,17 @@ class DariActivity : ComponentActivity() {
     }
 
     internal companion object {
+        /**
+         * Tracks whether [DariActivity] is currently in the foreground.
+         *
+         * Used by `DariShakeManager` to suppress shake-to-open while the activity
+         * is already visible (avoids re-launching it on top of itself).
+         *
+         * - Updated from the main thread in [onStart] / [onStop].
+         * - Read from the sensor callback thread in `DariShakeManager`,
+         *   so it must be `@Volatile` for cross-thread visibility.
+         * - `private set` keeps writes confined to the activity lifecycle.
+         */
         @Volatile
         internal var isVisible: Boolean = false
             private set
