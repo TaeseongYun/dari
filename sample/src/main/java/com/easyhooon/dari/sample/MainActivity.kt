@@ -255,9 +255,9 @@ class MainActivity : ComponentActivity() {
 
     private fun handleSimulateSlowResponse(handlerName: String, requestId: String) {
         lifecycleScope.launch {
-            kotlinx.coroutines.delay(5000)
+            kotlinx.coroutines.delay(10_000)
             val response = JSONObject().apply {
-                put("result", "completed after 5s delay")
+                put("result", "completed after 10s delay")
             }
             interceptor?.onWebToAppResponse(handlerName, requestId, response.toString(2), true)
             callJs(requestId, true, response.toString())

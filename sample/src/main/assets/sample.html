@@ -106,8 +106,8 @@
 
     <div class="section">Status Test (In Progress / Error)</div>
     <button class="btn btn-orange" onclick="simulateSlowResponse()">
-        Slow Response (5s delay)
-        <span>Stays IN_PROGRESS for 5 seconds before completing</span>
+        Slow Response (10s delay)
+        <span>Stays IN_PROGRESS for 10 seconds before completing</span>
     </button>
     <button class="btn btn-red" onclick="simulateError()">
         Simulate Error
@@ -211,7 +211,7 @@
 
         function simulateSlowResponse() {
             var id = createRequestId();
-            log('→ simulateSlowResponse (5s delay)', 'req');
+            log('→ simulateSlowResponse (10s delay)', 'req');
             Android.onBridgeRequest('simulateSlowResponse', id, null);
         }
 

@@ -95,7 +95,7 @@ internal val MessageStatus.palette: MessageStatusPalette
             MessageStatus.IN_PROGRESS -> MessageStatusPalette(
                 container = Amber500,
                 onContainer = Color.Black,
-                onSurface = if (isDarkScheme) Amber300 else Orange900,
+                onSurface = if (isDarkScheme) Amber300 else Orange800,
             )
             MessageStatus.SUCCESS -> MessageStatusPalette(
                 container = Green500,
