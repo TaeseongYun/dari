@@ -90,6 +90,8 @@ class MainActivity : ComponentActivity() {
                 "requestCameraPermission" -> handleRequestCameraPermission(requestId)
                 "sendWithNullFields" -> handleSendWithNullFields(handlerName, requestId, data)
                 "fetchLargeData" -> handleFetchLargeData(handlerName, requestId)
+                "simulateSlowResponse" -> handleSimulateSlowResponse(handlerName, requestId)
+                "simulateError" -> handleSimulateError(handlerName, requestId, data)
                 else -> {
                     val error = """{"error":"Unknown handler","handler":"$handlerName"}"""
                     interceptor?.onWebToAppResponse(handlerName, requestId, error, false)
@@ -249,6 +251,28 @@ class MainActivity : ComponentActivity() {
         }
         interceptor?.onWebToAppResponse(handlerName, requestId, largePayload, true)
         callJs(requestId, true, """{"size":${largePayload.length},"itemCount":10000}""")
+    }
+
+    private fun handleSimulateSlowResponse(handlerName: String, requestId: String) {
+        lifecycleScope.launch {
+            kotlinx.coroutines.delay(5000)
+            val response = JSONObject().apply {
+                put("result", "completed after 5s delay")
+            }
+            interceptor?.onWebToAppResponse(handlerName, requestId, response.toString(2), true)
+            callJs(requestId, true, response.toString())
+        }
+    }
+
+    private fun handleSimulateError(handlerName: String, requestId: String, data: String?) {
+        val json = data?.let { JSONObject(it) }
+        val errorType = json?.optString("errorType", "generic") ?: "generic"
+        val response = JSONObject().apply {
+            put("error", errorType)
+            put("message", "Simulated $errorType error for testing")
+        }
+        interceptor?.onWebToAppResponse(handlerName, requestId, response.toString(2), false)
+        callJs(requestId, false, response.toString())
     }
 
     private fun handleLogEvent(data: String?) {
