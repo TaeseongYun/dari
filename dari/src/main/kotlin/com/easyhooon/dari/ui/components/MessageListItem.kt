@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.easyhooon.dari.MessageDirection
 import com.easyhooon.dari.MessageEntry
 import com.easyhooon.dari.MessageStatus
-import com.easyhooon.dari.ui.theme.color
+import com.easyhooon.dari.ui.theme.palette
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -91,7 +91,7 @@ internal fun MessageListItem(
                 MessageStatus.SUCCESS -> "SUCCESS"
                 MessageStatus.ERROR -> "ERROR"
             }
-            val statusColor = entry.status.color()
+            val statusColor = entry.status.palette.onSurface
             Text(
                 text = statusText,
                 style = MaterialTheme.typography.bodySmall,

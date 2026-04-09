@@ -75,7 +75,7 @@ import com.easyhooon.dari.ui.components.SettingsBottomSheet
 import com.easyhooon.dari.ui.theme.ApplyDariSystemBars
 import com.easyhooon.dari.ui.theme.DariTheme
 import com.easyhooon.dari.ui.theme.DariTopBarColors
-import com.easyhooon.dari.ui.theme.color
+import com.easyhooon.dari.ui.theme.palette
 
 /**
  * Activity displaying the list of bridge messages.
@@ -354,14 +354,15 @@ class DariActivity : ComponentActivity() {
                             // Order: Error first (most actionable in a debug tool),
                             // then In Progress (stuck calls), Success last (baseline noise).
                             STATUS_FILTER_ORDER.forEach { status ->
+                                val statusPalette = status.palette
                                 FilterChip(
                                     label = status.displayLabel(),
                                     selected = selectedStatus == status,
                                     onClick = {
                                         selectedStatus = if (selectedStatus == status) null else status
                                     },
-                                    selectedBackground = status.color(),
-                                    selectedContent = Color.White,
+                                    selectedBackground = statusPalette.container,
+                                    selectedContent = statusPalette.onContainer,
                                 )
                             }
                         }
