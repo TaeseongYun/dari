@@ -184,6 +184,8 @@ class DariActivity : ComponentActivity() {
                     val matchesStatus = selectedStatus == null || entry.status == selectedStatus
                     matchesSearch && matchesTag && matchesStatus
                 }
+                val hasActiveFilters =
+                    searchQuery.isNotBlank() || selectedTag != null || selectedStatus != null
 
                 Scaffold(
                     topBar = {
@@ -370,10 +372,10 @@ class DariActivity : ComponentActivity() {
                                     .padding(16.dp),
                             ) {
                                 Text(
-                                    text = if (searchQuery.isBlank()) {
+                                    text = if (!hasActiveFilters) {
                                         "No messages captured yet"
                                     } else {
-                                        "No results for \"$searchQuery\""
+                                        "No results for current filters"
                                     },
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
