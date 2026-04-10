@@ -42,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.easyhooon.dari.BuildConfig
-import com.easyhooon.dari.ui.theme.DariBlue
+import com.easyhooon.dari.ui.theme.Blue500
 
 private const val GITHUB_URL = "https://github.com/easyhooon/dari"
 
@@ -132,7 +132,7 @@ private fun SectionHeader(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
-        color = DariBlue,
+        color = Blue500,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
     )
@@ -161,13 +161,13 @@ private fun DarkModeRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(DariBlue.copy(alpha = 0.12f)),
+                .background(Blue500.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.Brightness6,
                 contentDescription = null,
-                tint = DariBlue,
+                tint = Blue500,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -218,13 +218,13 @@ private fun SettingToggleRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(DariBlue.copy(alpha = 0.12f)),
+                .background(Blue500.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = DariBlue,
+                tint = Blue500,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -249,7 +249,7 @@ private fun SettingToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = DariBlue,
+                checkedTrackColor = Blue500,
             ),
         )
     }
