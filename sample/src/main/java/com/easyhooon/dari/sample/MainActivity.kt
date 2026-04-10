@@ -266,8 +266,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleSimulateError(handlerName: String, requestId: String, data: String?) {
-        val json = data?.let { JSONObject(it) }
-        val errorType = json?.optString("errorType", "generic") ?: "generic"
+        val errorType = runCatching {
+            data?.let { JSONObject(it).optString("errorType", "generic") }
+        }.getOrNull().takeUnless { it.isNullOrBlank() } ?: "generic"
         val response = JSONObject().apply {
             put("error", errorType)
             put("message", "Simulated $errorType error for testing")
