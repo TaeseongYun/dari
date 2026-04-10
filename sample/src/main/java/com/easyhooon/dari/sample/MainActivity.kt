@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.easyhooon.dari.Dari
 import com.easyhooon.dari.interceptor.DariInterceptor
@@ -255,7 +256,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleSimulateSlowResponse(handlerName: String, requestId: String) {
         lifecycleScope.launch {
-            kotlinx.coroutines.delay(10_000)
+            delay(10_000)
             val response = JSONObject().apply {
                 put("result", "completed after 10s delay")
             }
