@@ -8,26 +8,53 @@ Just as Chucker intercepts and displays HTTP traffic, Dari captures and visualiz
 
 ## Screenshots
 
-<p align="center">
-  <img src="screenshots/shortcut_v3.jpeg" width="270" />
-  <img src="screenshots/notification.jpeg" width="270" />
-  <img src="screenshots/list.jpeg" width="270" />
-</p>
-<p align="center">
-  <img src="screenshots/overview.jpeg" width="270" />
-  <img src="screenshots/request.jpeg" width="270" />
-  <img src="screenshots/response.jpeg" width="270" />
-</p>
+<table>
+  <tr>
+    <td align="center"><b>Launcher Shortcut</b></td>
+    <td align="center"><b>Notification</b></td>
+    <td align="center"><b>Message List</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/shortcut_v3.jpeg" width="270" /></td>
+    <td><img src="screenshots/notification.jpeg" width="270" /></td>
+    <td><img src="screenshots/list_v2.jpeg" width="270" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Overview</b></td>
+    <td align="center"><b>Request</b></td>
+    <td align="center"><b>Response</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/overview_v2.jpeg" width="270" /></td>
+    <td><img src="screenshots/request_v2.jpeg" width="270" /></td>
+    <td><img src="screenshots/response_v2.jpeg" width="270" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Tag Filter</b></td>
+    <td align="center"><b>Settings</b></td>
+    <td align="center"><b>Dark Mode</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/tag_filter.jpeg" width="270" /></td>
+    <td><img src="screenshots/share_bottom_sheet.jpeg" width="270" /></td>
+    <td><img src="screenshots/dark_mode.jpeg" width="270" /></td>
+  </tr>
+</table>
 
 ## Features
 
 - Intercepts Web-to-App and App-to-Web bridge messages
 - **Tag support** for identifying message sources in multi-WebView/Activity environments
+- **Message status tracking** — `IN_PROGRESS`, `SUCCESS`, `ERROR` with color-coded indicators
+- **Status filtering** — filter messages by status via chips
 - Chucker-style persistent notification showing recent bridge activity
 - Message list UI with search, filter by handler name, and **tag-based filtering**
 - Detail view with Overview / Request / Response tabs
 - JSON pretty-printing for request and response payloads
-- Share message details as text
+- Export messages as text or JSON
+- **Shake-to-open** — shake device to launch Dari UI (with haptic feedback)
+- **Dark mode** — System / Light / Dark theme toggle
+- **Settings bottom sheet** — shake toggle, theme selector, clear data, and version info
 - Dynamic launcher shortcut for quick access
 - Zero overhead in release builds via no-op module
 - Auto-initialization via `androidx.startup`
@@ -114,13 +141,24 @@ class MyApp : Application() {
         Dari.init(
             context = this,
             config = DariConfig(
-                maxEntries = 1000,         // Default: 500
-                showNotification = true,   // Default: true
+                maxEntries = 1000,              // Default: 500
+                showNotification = true,        // Default: true
+                maxContentLength = 500_000,     // Default: 500,000 (truncate large payloads)
+                shakeToOpen = true,             // Default: false
+                retentionPeriod = 1.days,       // Default: null (disabled)
             )
         )
     }
 }
 ```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `maxEntries` | `Int` | `500` | Maximum number of stored messages |
+| `showNotification` | `Boolean` | `true` | Show persistent notification |
+| `maxContentLength` | `Int` | `500,000` | Truncate request/response payloads exceeding this length |
+| `shakeToOpen` | `Boolean` | `false` | Enable shake gesture to open Dari UI |
+| `retentionPeriod` | `Duration?` | `null` | TTL-based message cleanup (e.g., `1.hours`, `3.days`). `null` disables it |
 
 ## Module Structure
 
@@ -148,6 +186,8 @@ The `sample/` module contains a working WebView demo with realistic bridge scena
 |--------|-------------|
 | `init(context, config)` | Initialize with custom configuration |
 | `createInterceptor(tag?)` | Create a `DariInterceptor` with an optional tag (returns `null` in noop) |
+| `setShakeToOpenEnabled(enabled)` | Enable/disable shake-to-open at runtime (persisted) |
+| `setDarkMode(value)` | Override dark mode: `true` / `false` / `null` (system default). Persisted |
 | `showNotification()` | Show the notification (e.g., after permission grant) |
 | `clear()` | Clear all stored messages and dismiss notification |
 
