@@ -14,9 +14,14 @@ Just as Chucker intercepts and displays HTTP traffic, Dari captures and visualiz
   <img src="screenshots/list.jpeg" width="270" />
 </p>
 <p align="center">
-  <img src="screenshots/overview.jpeg" width="270" />
-  <img src="screenshots/request.jpeg" width="270" />
-  <img src="screenshots/response.jpeg" width="270" />
+  <img src="screenshots/overview_v2.jpeg" width="270" />
+  <img src="screenshots/request_v2.jpeg" width="270" />
+  <img src="screenshots/response_v2.jpeg" width="270" />
+</p>
+<p align="center">
+  <img src="screenshots/tag_filter.jpeg" width="270" />
+  <img src="screenshots/share_bottom_sheet.jpeg" width="270" />
+  <img src="screenshots/dark_mode.jpeg" width="270" />
 </p>
 
 ## Features
