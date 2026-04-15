@@ -8,21 +8,38 @@ Just as Chucker intercepts and displays HTTP traffic, Dari captures and visualiz
 
 ## Screenshots
 
-<p align="center">
-  <img src="screenshots/shortcut_v3.jpeg" width="270" />
-  <img src="screenshots/notification.jpeg" width="270" />
-  <img src="screenshots/list.jpeg" width="270" />
-</p>
-<p align="center">
-  <img src="screenshots/overview_v2.jpeg" width="270" />
-  <img src="screenshots/request_v2.jpeg" width="270" />
-  <img src="screenshots/response_v2.jpeg" width="270" />
-</p>
-<p align="center">
-  <img src="screenshots/tag_filter.jpeg" width="270" />
-  <img src="screenshots/share_bottom_sheet.jpeg" width="270" />
-  <img src="screenshots/dark_mode.jpeg" width="270" />
-</p>
+<table>
+  <tr>
+    <td align="center"><b>Launcher Shortcut</b></td>
+    <td align="center"><b>Notification</b></td>
+    <td align="center"><b>Message List</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/shortcut_v3.jpeg" width="270" /></td>
+    <td><img src="screenshots/notification.jpeg" width="270" /></td>
+    <td><img src="screenshots/list_v2.jpeg" width="270" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Overview</b></td>
+    <td align="center"><b>Request</b></td>
+    <td align="center"><b>Response</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/overview_v2.jpeg" width="270" /></td>
+    <td><img src="screenshots/request_v2.jpeg" width="270" /></td>
+    <td><img src="screenshots/response_v2.jpeg" width="270" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Tag Filter</b></td>
+    <td align="center"><b>Settings</b></td>
+    <td align="center"><b>Dark Mode</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/tag_filter.jpeg" width="270" /></td>
+    <td><img src="screenshots/share_bottom_sheet.jpeg" width="270" /></td>
+    <td><img src="screenshots/dark_mode.jpeg" width="270" /></td>
+  </tr>
+</table>
 
 ## Features
 
